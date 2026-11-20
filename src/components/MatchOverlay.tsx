@@ -6,11 +6,7 @@ import { useEffect, useRef } from 'react';
 import { Avatar } from './Avatar';
 import type { ProfileDTO } from '@/lib/types';
 
-/**
- * Shown the moment a swipe turns out to be mutual. This is the only place the
- * app ever tells the user that someone likes them — and by then they have
- * already liked that person back.
- */
+/** The only screen that reveals someone's interest, and only once it is mutual. */
 export function MatchOverlay({
   profile,
   onClose,

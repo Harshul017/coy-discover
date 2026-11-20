@@ -11,9 +11,6 @@ import {
   recordSwipe,
 } from '@/lib/services/discover';
 
-// Profiles that were seeded as already having liked the logged-in user, and one
-// that has not. Both are needed to prove the two cases behave identically on
-// the wire except for the `matched` flag.
 const ADMIRER = PROFILES.find((p) => p.likesMe)!.id;
 const STRANGER = PROFILES.find((p) => !p.likesMe)!.id;
 
@@ -46,9 +43,8 @@ describe('feed', () => {
     expect(feed).toHaveLength(PROFILES.length - 2);
   });
 
-  it('survives a reload: the exclusion lives in the database, not the client', async () => {
+  it('persists the exclusion in the database, not the client', async () => {
     await recordSwipe(db, ME_ID, STRANGER, 'pass');
-    // A "reload" is simply another read against the same database.
     const feed = await getFeed(db, ME_ID, 100);
     expect(feed.map((p) => p.id)).not.toContain(STRANGER);
   });
@@ -87,8 +83,6 @@ describe('privacy: the feed must not reveal who liked the user', () => {
   });
 
   it('does not float admirers to the front of the deck', async () => {
-    // If ordering depended on who liked the user, every admirer would land in
-    // the first N slots. Assert they are spread through the deck instead.
     const feed = await getFeed(db, ME_ID, 100);
     const admirers = new Set(PROFILES.filter((p) => p.likesMe).map((p) => p.id));
     const positions = feed
@@ -96,7 +90,6 @@ describe('privacy: the feed must not reveal who liked the user', () => {
       .filter((i) => i >= 0);
 
     expect(positions.length).toBe(admirers.size);
-    // At least one admirer sits in the back half of the deck.
     expect(Math.max(...positions)).toBeGreaterThan(feed.length / 2);
   });
 
@@ -198,9 +191,7 @@ describe('repeat and invalid swipes', () => {
   });
 
   it('converges on exactly one match when both sides like, in either order', async () => {
-    // A true concurrency test needs more than one connection, which an
-    // in-memory database does not have; tests/concurrency.test.ts covers that
-    // against a file-backed database. This checks the ordering invariant.
+    // True concurrency needs more than one connection; see concurrency.test.ts.
     const mine = await recordSwipe(db, ME_ID, STRANGER, 'like');
     const theirs = await recordSwipe(db, STRANGER, ME_ID, 'like');
 
@@ -220,7 +211,7 @@ describe('seeding', () => {
     expect(Number(rows[0].n)).toBeGreaterThanOrEqual(31);
   });
 
-  it('seeds people who already liked the user, so a match is demoable', async () => {
+  it('seeds people who already liked the user', async () => {
     const { rows } = await db.execute({
       sql: `SELECT COUNT(*) AS n FROM swipes WHERE target_id = ? AND action = 'like'`,
       args: [ME_ID],

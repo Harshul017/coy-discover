@@ -9,11 +9,7 @@ function hueFor(name: string): number {
   return h;
 }
 
-/**
- * Placeholder photos come from a remote service. If it is unreachable (offline
- * demo, blocked network) we fall back to a tinted monogram, so the deck never
- * shows a broken image.
- */
+/** Falls back to a tinted monogram when the photo cannot be loaded. */
 export function Avatar({
   src,
   name,
@@ -39,8 +35,7 @@ export function Avatar({
       <div
         className={`flex items-center justify-center overflow-hidden ${rounded} ${className}`}
         style={{
-          // Own container, so the monogram scales to the avatar box whether it
-          // is a full-bleed card or a 64px row thumbnail.
+          // Own container, so the monogram scales to the avatar box.
           containerType: 'size',
           background: `linear-gradient(145deg, hsl(${hue} 85% 88%), hsl(${
             (hue + 40) % 360

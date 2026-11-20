@@ -7,10 +7,8 @@ import { seed } from '@/lib/db/seed';
 import { ME_ID, PROFILES } from '@/lib/db/seed-data';
 import { getMatches, recordSwipe } from '@/lib/services/discover';
 
-/**
- * Concurrency needs a file-backed database: an in-memory libSQL client holds a
- * single connection, so two overlapping transactions cannot exist there.
- */
+// Needs a file-backed database: an in-memory libSQL client holds a single
+// connection, so two overlapping transactions cannot exist.
 
 const STRANGER = PROFILES.find((p) => !p.likesMe)!.id;
 
@@ -35,9 +33,6 @@ describe('concurrent swipes', () => {
       recordSwipe(db, STRANGER, ME_ID, 'like'),
     ]);
 
-    // Whichever transaction commits second observes the reverse like. The
-    // important part is that the pair ends up matched exactly once, and that
-    // both sides agree.
     expect(a.matched || b.matched).toBe(true);
 
     const { rows } = await db.execute('SELECT COUNT(*) AS n FROM matches');
@@ -52,7 +47,6 @@ describe('concurrent swipes', () => {
       recordSwipe(db, ME_ID, STRANGER, 'like'),
     ]);
 
-    // Neither request may corrupt state: at most one row, no duplicate match.
     expect(results.some((r) => r.status === 'fulfilled')).toBe(true);
 
     const swipes = await db.execute({

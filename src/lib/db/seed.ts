@@ -2,12 +2,7 @@ import type { Client } from '@libsql/client';
 import { ME, ME_ID, PROFILES } from './seed-data';
 import { migrate } from './client';
 
-/**
- * Seeds the database. Idempotent: safe to run repeatedly.
- *
- * `reset: true` wipes swipes and matches as well, which is what the demo reset
- * endpoint uses so a reviewer can start from a clean deck.
- */
+/** Idempotent. `reset` also clears swipes and matches. */
 export async function seed(db: Client, { reset = false }: { reset?: boolean } = {}) {
   await migrate(db);
 
@@ -45,9 +40,7 @@ export async function seed(db: Client, { reset = false }: { reset?: boolean } = 
     'write',
   );
 
-  // Pre-existing likes *towards* the logged-in user. These are ordinary rows in
-  // `swipes`; nothing marks them as special. They are never surfaced to the
-  // client until the user likes the same person back.
+  // Ordinary swipe rows; nothing marks them as special.
   const admirers = PROFILES.filter((p) => p.likesMe);
   if (admirers.length > 0) {
     await db.batch(

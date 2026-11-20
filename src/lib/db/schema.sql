@@ -1,12 +1,3 @@
--- Coy Discover schema.
--- Design notes:
---  * `swipes` has a composite primary key so a user can never record two swipes
---    on the same target. A double-tap or a retried request is a no-op.
---  * `matches` stores the pair with user_a < user_b (lexicographic) so a pair can
---    only ever exist once, in one direction. There is no "who liked first" column:
---    that information is not needed to render a match and storing it invites leaks.
---  * Nothing in this schema is exposed to the client directly. See src/lib/dto.ts.
-
 CREATE TABLE IF NOT EXISTS profiles (
   id          TEXT PRIMARY KEY,
   name        TEXT    NOT NULL,
@@ -27,7 +18,6 @@ CREATE TABLE IF NOT EXISTS swipes (
   CHECK (swiper_id <> target_id)
 );
 
--- Lets us answer "has X already liked me?" without scanning.
 CREATE INDEX IF NOT EXISTS idx_swipes_target ON swipes (target_id, action);
 
 CREATE TABLE IF NOT EXISTS matches (

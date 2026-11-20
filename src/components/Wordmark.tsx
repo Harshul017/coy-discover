@@ -1,4 +1,4 @@
-/** Coy's wordmark: lowercase, heavy, with a pink full stop. */
+/** Coy wordmark. */
 export function Wordmark({ className = '' }: { className?: string }) {
   return (
     <span className={`font-extrabold tracking-tight ${className}`}>

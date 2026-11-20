@@ -4,11 +4,7 @@ import { seed } from './db/seed';
 
 let bootstrapped: Promise<void> | null = null;
 
-/**
- * Makes sure the schema exists and the demo data is present before the first
- * request is served. Seeding is idempotent, so this is safe on every cold start
- * (serverless gives us plenty of those).
- */
+/** Applies the schema and seeds on first use. Safe on every cold start. */
 export async function withDb() {
   const db = await ensureMigrated();
   if (!bootstrapped) {

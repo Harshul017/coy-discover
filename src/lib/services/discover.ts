@@ -2,11 +2,7 @@ import type { Client, Row } from '@libsql/client';
 import { ME_ID } from '../db/seed-data';
 import type { MatchDTO, ProfileDTO, SwipeAction, SwipeResultDTO } from '../types';
 
-/**
- * There is no auth in this app. Every request is the same person. Keeping that
- * assumption behind one function means swapping in a real session later touches
- * exactly one place, and no route ever reads a user id from the client.
- */
+/** Single-user app: the actor is resolved here, never read from the client. */
 export function getCurrentUserId(): string {
   return ME_ID;
 }
@@ -14,7 +10,7 @@ export function getCurrentUserId(): string {
 export class NotFoundError extends Error {}
 export class InvalidSwipeError extends Error {}
 
-/** Build the wire shape field by field. Never spread a database row. */
+/** Built field by field so a new column cannot leak into a response. */
 function toProfileDTO(row: Row): ProfileDTO {
   return {
     id: String(row.id),
@@ -28,13 +24,8 @@ function toProfileDTO(row: Row): ProfileDTO {
 }
 
 /**
- * Deterministic, like-independent ordering.
- *
- * Ordering is a side channel: if profiles that already liked the user drifted
- * to the front of the deck, the app would be leaking exactly what it promises
- * to hide, without ever naming them in a payload. This hash depends only on the
- * profile id and a fixed salt, so the deck order is stable across reloads and
- * tells the user nothing.
+ * Stable deck order derived only from the profile id. Ordering by anything
+ * like-related would reveal who liked the user without naming them.
  */
 function deckRank(id: string): number {
   let h = 0x811c9dc5;
@@ -46,7 +37,7 @@ function deckRank(id: string): number {
   return h;
 }
 
-/** Profiles the user has not swiped on yet, in a stable order. */
+/** Profiles the user has not swiped on yet. */
 export async function getFeed(
   db: Client,
   userId: string,
@@ -70,7 +61,7 @@ export async function getFeed(
     .slice(0, limit);
 }
 
-/** Matches are stored once, with the ids in sorted order. */
+/** Matches are keyed by the pair in sorted order, so it can exist only once. */
 function pairKey(a: string, b: string): [string, string] {
   return a < b ? [a, b] : [b, a];
 }
@@ -85,24 +76,11 @@ async function getProfile(db: Client, id: string): Promise<ProfileDTO | null> {
 }
 
 /**
- * Records a swipe and reports whether it created (or already had) a match.
+ * Records a swipe and reports whether the pair is now matched.
  *
- * All three statements run as one `batch('write')`, which libSQL executes
- * inside a single transaction. Doing it this way rather than with an
- * interactive transaction matters for two reasons:
- *
- *  1. Atomicity. "Have they liked me?" and "create the match" must not be
- *     separated, or two simultaneous likes can both read "no reverse like yet"
- *     and neither side ends up matched.
- *  2. Contention. An interactive transaction holds SQLite's single write lock
- *     open across network/JS round trips, so a second concurrent swipe sits
- *     there until it times out. A batch holds the lock only for the length of
- *     the batch.
- *
- * Re-swiping the same profile is a no-op rather than an error, so a double tap
- * or a retried request returns the original outcome. A recorded pass is never
- * overwritten by a later like: the match insert requires a `like` row on both
- * sides, and the swipe insert does nothing on conflict.
+ * Runs as a single write batch: the reverse-like check and the match insert
+ * must be atomic, or two simultaneous likes can both miss the match. Re-swiping
+ * is a no-op that returns the original outcome.
  */
 export async function recordSwipe(
   db: Client,
@@ -129,9 +107,8 @@ export async function recordSwipe(
         args: [userId, targetId, action, now],
       },
       {
-        // Insert a match only when a 'like' exists in both directions. Phrased
-        // as INSERT..SELECT..WHERE EXISTS so the check and the write are one
-        // statement with no read-modify-write gap.
+        // INSERT..SELECT..WHERE EXISTS keeps the check and the write in one
+        // statement, leaving no read-modify-write gap.
         sql: `INSERT INTO matches (user_a, user_b, created_at)
               SELECT ?, ?, ?
                WHERE EXISTS (SELECT 1 FROM swipes
@@ -151,13 +128,11 @@ export async function recordSwipe(
 
   const matched = results[2].rows.length > 0;
 
-  // A pass never matches, and a one-sided like returns exactly the same
-  // payload as a pass: { matched: false }. The profile is attached only on a
-  // real match, so the response itself carries no hint of one-sided interest.
+  // A one-sided like returns the same payload as a pass.
   return matched ? { matched: true, profile: target } : { matched: false };
 }
 
-/** Mutual matches only. A one-sided like is never represented here. */
+/** Mutual matches only. */
 export async function getMatches(db: Client, userId: string): Promise<MatchDTO[]> {
   const { rows } = await db.execute({
     sql: `SELECT p.id, p.name, p.age, p.photo_url, p.bio, p.location, p.interests,

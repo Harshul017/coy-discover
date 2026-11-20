@@ -6,16 +6,9 @@ import { Avatar } from './Avatar';
 import type { ProfileDTO } from '@/lib/types';
 
 /**
- * Shown after a like that is not (yet) mutual.
- *
- * It tells the user only about their own action — that the like is recorded and
- * that they will hear back if it is returned. It deliberately says nothing
- * about the other person: not whether they are active, not whether they have
- * seen you, and above all not whether they have already liked you. Those would
- * all be ways of leaking the thing Coy promises to keep hidden.
- *
- * Deliberately non-blocking and self-dismissing: a modal here would mean
- * dismissing a dialog on every single right swipe.
+ * Confirms a like that is not (yet) mutual. Speaks only about the user's own
+ * action — anything about the other person would leak their interest.
+ * Non-blocking, so swiping stays fast.
  */
 const VISIBLE_MS = 2000;
 

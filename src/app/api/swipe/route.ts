@@ -10,14 +10,13 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+// No `swiperId`: the actor comes from the server, not the request body.
 const SwipeBody = z.object({
-  // Note there is no `swiperId`: the actor is taken from the session, never
-  // from the request body, so a client cannot swipe as somebody else.
   targetId: z.string().min(1).max(64),
   action: z.enum(['like', 'pass']),
 });
 
-/** POST /api/swipe — record a like or pass; reports a match only if mutual. */
+/** POST /api/swipe — records a like or pass; reports a match only if mutual. */
 export async function POST(request: Request) {
   let body: unknown;
   try {

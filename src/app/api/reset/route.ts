@@ -6,14 +6,9 @@ import { seed } from '@/lib/db/seed';
 export const dynamic = 'force-dynamic';
 
 /**
- * POST /api/reset — wipe swipes and matches and re-seed.
+ * POST /api/reset — clears swipes and matches, then re-seeds.
  *
- * The deployed demo has a single shared user, so every reviewer swipes the same
- * deck. This lets the next person start fresh.
- *
- * Always available in development. In production it has to be switched on with
- * ALLOW_DEMO_RESET, so a real deployment cannot have its data wiped by anyone
- * who finds the route.
+ * Always available in development; in production it requires ALLOW_DEMO_RESET.
  */
 export async function POST() {
   const enabled =

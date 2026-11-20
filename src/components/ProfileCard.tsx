@@ -5,7 +5,7 @@ import { Avatar } from './Avatar';
 import type { ProfileDTO, SwipeAction } from '@/lib/types';
 
 const SWIPE_DISTANCE = 110; // px of travel that commits a swipe
-const SWIPE_VELOCITY = 500; // or a flick this fast
+const SWIPE_VELOCITY = 500; // or a flick at least this fast
 
 export function ProfileCard({
   profile,
@@ -16,7 +16,7 @@ export function ProfileCard({
   profile: ProfileDTO;
   onSwipe: (action: SwipeAction) => void;
   interactive: boolean;
-  /** -1 to fly left, 1 to fly right. Read by the exit animation. */
+  /** -1 to fly left, 1 to fly right. */
   exitDirection: number;
 }) {
   const x = useMotionValue(0);
@@ -29,7 +29,7 @@ export function ProfileCard({
       Math.abs(info.offset.x) > SWIPE_DISTANCE ||
       Math.abs(info.velocity.x) > SWIPE_VELOCITY;
 
-    if (!flung) return; // springs back to centre
+    if (!flung) return; // springs back
     onSwipe(info.offset.x > 0 ? 'like' : 'pass');
   }
 
@@ -54,7 +54,7 @@ export function ProfileCard({
       <div className="relative h-full w-full" style={{ containerType: 'size' }}>
         <Avatar src={profile.photoUrl} name={profile.name} className="h-full w-full" />
 
-        {/* Readability scrim behind the text. */}
+        {/* Readability scrim. */}
         <div
           className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/88 via-black/45 to-transparent"
           aria-hidden

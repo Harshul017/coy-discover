@@ -10,11 +10,6 @@ import type { ProfileDTO, SwipeAction } from '@/lib/types';
 
 type Status = 'loading' | 'ready' | 'error';
 
-/**
- * The deck is finite, so a reviewer who swipes all 36 profiles reaches the end.
- * In development the reset is always available; on a deployed demo it is shown
- * only when the server has it switched on too.
- */
 const RESET_ENABLED =
   process.env.NODE_ENV !== 'production' ||
   process.env.NEXT_PUBLIC_ALLOW_DEMO_RESET === 'true';
@@ -28,12 +23,10 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
   const [likeSent, setLikeSent] = useState<ProfileDTO | null>(null);
   const [direction, setDirection] = useState(1);
 
-  // Guards a swipe while the exit animation plays, so a fast double tap or a
-  // held arrow key cannot fire twice on the same card.
+  // Blocks a second swipe while one is in flight.
   const busy = useRef(false);
 
-  // No state is set before the first await: the component already mounts in
-  // the 'loading' state, so the effect does not trigger a cascading render.
+  // Sets no state before the first await; the component mounts in 'loading'.
   const load = useCallback(async () => {
     try {
       const { profiles } = await fetchFeed();
@@ -46,7 +39,6 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
     }
   }, []);
 
-  /** Used by the retry and refresh buttons, which are event handlers. */
   const reload = useCallback(() => {
     setStatus('loading');
     void load();
@@ -65,7 +57,7 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
     try {
       await resetDemo();
       await load();
-      onMatched?.(); // the match-count badge drops back to zero
+      onMatched?.();
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : 'Could not reset the demo.');
       setStatus('error');
@@ -80,7 +72,7 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
 
       busy.current = true;
       setDirection(action === 'like' ? 1 : -1);
-      // Optimistic: the card leaves immediately, the request follows.
+      // Optimistic: the card leaves now, the request follows.
       setDeck((current) => current.slice(1));
 
       try {
@@ -90,13 +82,10 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
           setMatch(result.profile);
           onMatched?.();
         } else if (action === 'like') {
-          // Not mutual (yet). Confirm the like landed without saying anything
-          // about how the other person feels.
           setLikeSent(profile);
         }
       } catch (err) {
-        // The swipe did not persist, so put the card back where it was rather
-        // than silently dropping someone out of the deck.
+        // Did not persist: put the card back rather than losing the profile.
         setDeck((current) => [profile, ...current]);
         setLikeSent(null);
         setToast(err instanceof Error ? err.message : 'That swipe did not save.');
@@ -107,7 +96,6 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
     [deck, onMatched],
   );
 
-  // Desktop keyboard support.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (match) return;
@@ -148,7 +136,6 @@ export function SwipeDeck({ onMatched }: { onMatched?: () => void }) {
       <div className="relative mx-4 min-h-0 flex-1">
         {top ? (
           <>
-            {/* The card behind, to give the deck depth. */}
             {next && (
               <div
                 key={next.id}

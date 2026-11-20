@@ -3,11 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /**
- * One libSQL client for the process.
- *
- * Local development and tests use a SQLite file (or :memory:). Production uses
- * Turso over the network, because Vercel's filesystem is read-only and
- * ephemeral — a file-backed SQLite database there would lose every swipe.
+ * One libSQL client per process: a SQLite file locally, Turso when deployed.
  * The SQL is identical either way.
  */
 
@@ -38,7 +34,7 @@ export function getDb(): Client {
   return client;
 }
 
-/** Create a fresh in-memory database. Used by the test suite. */
+/** Fresh in-memory database, used by the test suite. */
 export function createTestDb(): Client {
   return createClient({ url: ':memory:' });
 }
@@ -53,18 +49,13 @@ export function readSchema(): string[] {
     .map((s) => `${s};`);
 }
 
-/**
- * WAL lets readers run while a write transaction is open, and busy_timeout
- * makes a writer wait its turn instead of failing immediately with
- * SQLITE_BUSY. Both are no-ops on a remote Turso connection, which handles
- * this server-side, so failures here are ignored.
- */
+/** No-ops on a remote Turso connection, which rejects PRAGMA. */
 async function applyPragmas(db: Client): Promise<void> {
   for (const pragma of ['PRAGMA journal_mode = WAL', 'PRAGMA busy_timeout = 5000']) {
     try {
       await db.execute(pragma);
     } catch {
-      // Remote connections reject PRAGMA; nothing to do.
+      // Ignored.
     }
   }
 }
@@ -76,7 +67,7 @@ export async function migrate(db: Client): Promise<void> {
   }
 }
 
-/** Runs the schema once per process for the shared client. */
+/** Applies the schema once per process. */
 export async function ensureMigrated(): Promise<Client> {
   const db = getDb();
   if (!migrated) {

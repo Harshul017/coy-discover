@@ -1,12 +1,6 @@
 /**
- * Mock data for the Discover demo.
- *
- * `likesMe: true` means this profile has already liked the logged-in user, so a
- * right-swipe on them produces an instant match. Several are included so a
- * match can be demonstrated without a second account.
- *
- * Photos are placeholders from pravatar.cc. The UI falls back to an initial
- * avatar if an image fails to load, so the demo still works offline.
+ * Seed profiles. `likesMe` marks people who have already liked the logged-in
+ * user, so a match can happen without a second account.
  */
 
 export const ME_ID = 'me';

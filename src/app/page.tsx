@@ -1,11 +1,6 @@
 import { Wordmark } from '@/components/Wordmark';
 
-/**
- * Home tab.
- *
- * Intentionally blank: the assignment asks for a placeholder here so the
- * Discover tab can sit alongside Coy's existing experience.
- */
+/** Placeholder tab; the feature lives in Discover. */
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
@@ -20,8 +15,7 @@ export default function HomePage() {
       </div>
       <h1 className="text-xl font-extrabold tracking-tight">Home</h1>
       <p className="max-w-[26ch] text-sm font-medium leading-relaxed text-muted">
-        Placeholder for Coy&apos;s existing experience. The assignment lives in the
-        Discover tab.
+        Placeholder for Coy&apos;s existing experience. Head to Discover.
       </p>
     </div>
   );

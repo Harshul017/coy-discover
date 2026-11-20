@@ -1,13 +1,5 @@
 @import "tailwindcss";
 
-/*
- * Coy's visual language, taken from the live app:
- *  - hot pink on white, with near-black type
- *  - thick black outlines and a hard offset shadow instead of a soft blur
- *  - pills and generous corner radii
- *  - heavy geometric sans
- */
-
 :root {
   --background: #ffffff;
   --surface: #ffffff;
@@ -51,7 +43,7 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Coy's signature: solid outline plus a hard, un-blurred drop shadow. */
+/* Solid outline plus a hard, un-blurred drop shadow. */
 .hard {
   border: 2.5px solid var(--ink);
   box-shadow: 4px 4px 0 var(--ink);
@@ -67,7 +59,7 @@ body {
   box-shadow: 6px 6px 0 var(--ink);
 }
 
-/* Pressing a hard-shadowed control pushes it into its own shadow. */
+/* Pressing pushes the control into its own shadow. */
 .press {
   transition:
     transform 0.08s ease,
@@ -79,8 +71,7 @@ body {
   box-shadow: 0 0 0 var(--ink);
 }
 
-/* The deck is drag-driven; stop the browser treating a horizontal drag as a
-   scroll or a back-navigation gesture. */
+/* Stops a horizontal drag becoming a scroll or back-navigation gesture. */
 .no-touch-pan {
   touch-action: pan-y;
   -webkit-user-select: none;
