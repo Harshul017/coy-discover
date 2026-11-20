@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/*
+ * Coy's visual language, taken from the live app:
+ *  - hot pink on white, with near-black type
+ *  - thick black outlines and a hard offset shadow instead of a soft blur
+ *  - pills and generous corner radii
+ *  - heavy geometric sans
+ */
+
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --foreground: #101014;
+  --ink: #101014; /* outlines */
+  --muted: #70707c;
+  --line: #e7e7ec;
+  --pink: #ff2e6e;
+  --pink-deep: #e01457;
+  --pink-soft: #ffe5ee;
+  --yellow: #ffdd4a;
+  --font-app-stack: "Plus Jakarta Sans", "Poppins", ui-rounded, "SF Pro Rounded",
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-pink: var(--pink);
+  --color-pinkdeep: var(--pink-deep);
+  --color-pinksoft: var(--pink-soft);
+  --color-yellow: var(--yellow);
+  --font-sans: var(--font-app-stack);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-app-stack);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* Coy's signature: solid outline plus a hard, un-blurred drop shadow. */
+.hard {
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.hard-sm {
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.hard-lg {
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+/* Pressing a hard-shadowed control pushes it into its own shadow. */
+.press {
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.press:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+/* The deck is drag-driven; stop the browser treating a horizontal drag as a
+   scroll or a back-navigation gesture. */
+.no-touch-pan {
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
