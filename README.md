@@ -78,7 +78,7 @@ The deck is finite, so swiping all 36 reaches the empty state. It offers
 - [x] `GET /feed` — profiles not yet swiped on
 - [x] `POST /swipe` — records a like or pass, reports whether it matched
 - [x] `GET /matches` — mutual matches
-- [x] Swipes and matches persist across reloads
+- [x] Swipes and matches persist across reloads (SQLite, not client state)
 
 ---
 
@@ -121,17 +121,20 @@ ignored.
 
 | Method | Route | Returns |
 | --- | --- | --- |
-| `GET` | `/api/feed?limit=50` | `{ profiles }` — not yet swiped on |
-| `POST` | `/api/swipe` | `{ matched, profile? }` |
-| `GET` | `/api/matches` | `{ matches: { profile, matchedAt }[] }` |
-| `POST` | `/api/reset` | re-seeds; dev only unless `ALLOW_DEMO_RESET=true` |
+| `GET` | `/feed?limit=50` | `{ profiles }` — not yet swiped on |
+| `POST` | `/swipe` | `{ matched, profile? }` |
+| `GET` | `/matches` | `{ matches: { profile, matchedAt }[] }` |
+| `POST` | `/reset` | re-seeds; dev only unless `ALLOW_DEMO_RESET=true` |
+
+The handlers live under `/api/*` by Next.js convention and are also served at
+the bare paths above, so either works.
 
 ```bash
-curl localhost:3000/api/feed
-curl -X POST localhost:3000/api/swipe \
+curl localhost:3000/feed
+curl -X POST localhost:3000/swipe \
   -H 'Content-Type: application/json' \
   -d '{"targetId":"p01","action":"like"}'
-curl localhost:3000/api/matches
+curl localhost:3000/matches
 ```
 
 `400` for a malformed body, an out-of-range limit or a self-swipe; `404` for
